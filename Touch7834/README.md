@@ -14,7 +14,9 @@ not being touched, the function will return false.
 MIT license. Copyright 2017 Jon Watte (jwatte@gmail.com)
 
 
-    Touch7834 touch;
+    #include "Touch7834.h"
+    
+    Touch7834 touch(TOUCH_CHIP_SELECT_PIN);
     
     void setup() {
         touch.begin();
