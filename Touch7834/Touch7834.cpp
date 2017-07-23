@@ -5,6 +5,7 @@
 #define CMD_RDX  0xD0
 #define CMD_RDY  0x90
 #define ITERS       9
+#define JITTER      9
 
 static void sort(int16_t *a) {
   for (int i = 0; i != ITERS-1; ++i) {
@@ -68,10 +69,10 @@ bool Touch7834::read(int16_t *x, int16_t *y) {
     }
     sort(cx);
     sort(cy);
-    if (cx[ITERS-1] - cx[0] > 5) {
+    if (cx[ITERS-1] - cx[0] > JITTER) {
       got = false;
     }
-    if (cy[ITERS-1] - cy[0] > 5) {
+    if (cy[ITERS-1] - cy[0] > JITTER) {
       got = false;
     }
     *x = cx[ITERS/2];
