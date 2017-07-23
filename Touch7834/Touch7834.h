@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-class Touch7843 {
+class Touch7834 {
   public:
-    Touch7843(uint8_t cs = 8, uint32_t clock = 1500000);
+    Touch78er(uint8_t cs = 8, uint32_t clock = 1500000);
     void begin();
     bool read(int16_t *x, int16_t *y);
     void setCalibration(int16_t x0, int16_t x1, int16_t y0, int16_t y1);

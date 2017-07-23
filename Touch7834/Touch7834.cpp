@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include "Touch7834.h"
+#include "SPI.h"
 
 #define CMD_RDX  0xD0
 #define CMD_RDY  0x90
-#define ITERS       7
+#define ITERS       9
 
 static void sort(int16_t *a) {
   for (int i = 0; i != ITERS-1; ++i) {
@@ -23,7 +24,7 @@ static void sort(int16_t *a) {
   }
 }
 
-Touch7843::Touch7843(uint8_t cs, uint32_t clock) : clock_(clock), pin_(cs) {
+Touch7834::Touch7834(uint8_t cs, uint32_t clock) : clock_(clock), pin_(cs) {
     pinMode(pin_, OUTPUT);
     digitalWrite(pin_, HIGH);
     xmin = 1600;
@@ -32,10 +33,10 @@ Touch7843::Touch7843(uint8_t cs, uint32_t clock) : clock_(clock), pin_(cs) {
     ymax = 30000;
 }
 
-void Touch7843::begin() {
+void Touch7834::begin() {
 }
 
-bool Touch7843::read(int16_t *x, int16_t *y) {
+bool Touch7834::read(int16_t *x, int16_t *y) {
     uint16_t ux, uy;
     int16_t cx[ITERS];
     int16_t cy[ITERS];
@@ -67,12 +68,18 @@ bool Touch7843::read(int16_t *x, int16_t *y) {
     }
     sort(cx);
     sort(cy);
+    if (cx[ITERS-1] - cx[0] > 5) {
+      got = false;
+    }
+    if (cy[ITERS-1] - cy[0] > 5) {
+      got = false;
+    }
     *x = cx[ITERS/2];
     *y = cy[ITERS/2];
     return got;
 }
 
-void Touch7843::setCalibration(int16_t x0, int16_t x1, int16_t y0, int16_t y1) {
+void Touch7834::setCalibration(int16_t x0, int16_t x1, int16_t y0, int16_t y1) {
     xmin = x0;
     xmax = x1;
     ymin = y0;
