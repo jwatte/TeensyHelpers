@@ -1,26 +1,44 @@
 #include <Arduino.h>
 #include "Touch7834.h"
 
-#define  CMD_RDX  0xD0
-#define  CMD_RDY  0x90
-#define ITERS 4
+#define CMD_RDX  0xD0
+#define CMD_RDY  0x90
+#define ITERS       7
 
-Touch7843::Touch7843(uint8_t cs = 8, uint32_t clock = 1500000) : clock_(clock), pin_(cs) {
+static void sort(int16_t *a) {
+  for (int i = 0; i != ITERS-1; ++i) {
+    int smix = i;
+    int smval = a[i];
+    for (int j = i+1; j != ITERS; ++j) {
+      if (a[j] < smval) {
+        smix = j;
+        smval = a[j];
+      }
+    }
+    if (smix != i) {
+      int16_t v = a[i];
+      a[i] = smval;
+      a[smix] = v;
+    }
+  }
+}
+
+Touch7843::Touch7843(uint8_t cs, uint32_t clock) : clock_(clock), pin_(cs) {
     pinMode(pin_, OUTPUT);
     digitalWrite(pin_, HIGH);
-    xmin = 2000;
-    xmax = 30600;
-    ymin = 1400;
-    ymax = 29400;
+    xmin = 1600;
+    xmax = 30000;
+    ymin = 1600;
+    ymax = 30000;
 }
 
 void Touch7843::begin() {
 }
 
 bool Touch7843::read(int16_t *x, int16_t *y) {
-    float xx = 0;
-    float yy = 0;
-    int16_t ux, uy;
+    uint16_t ux, uy;
+    int16_t cx[ITERS];
+    int16_t cy[ITERS];
     bool got = true;
     for (int i = 0; i != ITERS; ++i) {
         digitalWrite(pin_, LOW);
@@ -38,21 +56,23 @@ bool Touch7843::read(int16_t *x, int16_t *y) {
         ux |= SPI.transfer(0);
         SPI.endTransaction();
         digitalWrite(pin_, HIGH);
-        if (uy < 1400 || uy > 29400) {
+        if (uy < ymin || uy > ymax) {
             got = false;
         }
-        if (ux < 2000 || ux > 30600) {
+        if (ux < xmin || ux > xmax) {
             got = false;
         }
-        yy += 239 - 240 * (uy - 1400) / (29400 - 1400);
-        xx += 319 - 320 * (ux - 2000) / (30600 - 2000);
+        cy[i] = 239 - 240 * (uy - ymin) / (ymax - ymin);
+        cx[i] = 319 - 320 * (ux - xmin) / (xmax - xmin);
     }
-    *x = (uint16_t)(xx / ITERS);
-    *y = (uint16_t)(yy / ITERS);
+    sort(cx);
+    sort(cy);
+    *x = cx[ITERS/2];
+    *y = cy[ITERS/2];
     return got;
 }
 
-void Touch7834::setCalibration(int16_t x0, int16_t x1, int16_t y0, int16_t y1) {
+void Touch7843::setCalibration(int16_t x0, int16_t x1, int16_t y0, int16_t y1) {
     xmin = x0;
     xmax = x1;
     ymin = y0;
